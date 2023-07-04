@@ -1,0 +1,28 @@
+name: Validate AWS terraform with best practices using Rego Policies
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout PR
+      uses: actions/checkout@v2
+
+    - name: Setup OPA
+      uses: open-policy-agent/setup-opa@v2
+      with:
+        version: latest
+        
+    - name: Validate Policies
+      run: |
+        for jsonfile in $(find . -type f -name "*.json"); do
+          echo $jsonfile
+          opa eval -d aws_cloudformation_nist_800_53/ -i $jsonfile -f pretty 'data'
+        done
